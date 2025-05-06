@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'yourdockerhubusername/devops-flask-app'
+        IMAGE_NAME = 'avikatz10/devops-flask-app'
         TAG = 'latest'
     }
 
