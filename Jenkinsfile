@@ -2,41 +2,38 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'avikatz10/devops-flask-app'
-        TAG = 'latest'
+        DOCKER_IMAGE = "avikatz10/devops-flask-app:latest"
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/Avikatz10/DevopsProject.git'
+                git 'https://github.com/Avikatz10/DevopsProject.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    bat "docker build -t %IMAGE_NAME%:%TAG% ."
-                }
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    script {
-                        bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
-                        bat "docker push avikatz10/devops-flask-app:latest"
-                    }
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds',
+                                                 usernameVariable: 'DOCKER_USER',
+                                                 passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push $DOCKER_IMAGE
+                    '''
                 }
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    bat "kubectl apply -f k8s\\deployment.yaml"
-                }
+                sh 'kubectl apply -f k8s/deployment.yaml'
             }
         }
     }
